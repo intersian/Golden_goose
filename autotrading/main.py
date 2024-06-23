@@ -14,7 +14,7 @@ with open("keys.txt") as f:
 
 
 
-bit_orderbook = pybithumb.get_orderbook('USDT')   #빗썸 오더북wefwefwef
+bit_orderbook = pybithumb.get_orderbook('USDT')   #빗썸 오더북
 bit_bids = bit_orderbook['bids']                  #빗썸 매수대기
 bit_bids_1st = bit_bids[0]                        #빗썸 매수 1호가, 잔량
 bit_asks = bit_orderbook['asks']                  #빗썸 매도대기
