@@ -20,9 +20,10 @@ def get_ror(k=0.5):
 
     df.to_excel("larry_ma.xlsx")
 
-    ror = df['ror'].cumprod().iloc[-2]
-    print(ror)
-    return ror
+    # ror = df['ror'].cumprod().iloc[-2]
+    # print(ror)
+    hpr = df['hpr'].iloc[-2]
+    return hpr
 
 # for k in np.arange(0.1, 1.0, 0.1):
 #     ror = get_ror(k)
