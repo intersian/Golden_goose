@@ -4,7 +4,7 @@ import numpy as np
 
 def get_hpr(ticker):
     try:
-        df = pybithumb.get_ohlcv("BTC")
+        df = pybithumb.get_ohlcv(ticker)
         df = df.loc['2024']
 
         df['ma5'] = df['close'].rolling(window=5).mean().shift(1)
