@@ -56,7 +56,7 @@ class MyWindow(QMainWindow):
         self.consumer.start()
 
         # widget
-        self.label = QLabel("Bitcoin: ", self)
+        self.label = QLabel("USDT: ", self)
         self.label.move(10, 10)
 
         # QLineEdit
