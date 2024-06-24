@@ -12,34 +12,66 @@ with open("wbh_keys.txt") as f:
     up_secret = lines[3].strip()
     upbit = pyupbit.Upbit(up_key, up_secret)
 
-bit_orderbook = pybithumb.get_orderbook('USDT')   #빗썸 오더북
-bit_bids = bit_orderbook['bids']                  #빗썸 매수대기
-bit_bids_1st = bit_bids[0]                        #빗썸 매수 1호가, 잔량
-bit_asks = bit_orderbook['asks']                  #빗썸 매도대기
-bit_asks_1st = bit_asks[0]                        #빗썸 매도 1호가, 잔량
+bit_orderbook = pybithumb.get_orderbook('USDT')             #빗썸 오더북
+bit_bids = bit_orderbook['bids']                            #빗썸 매수대기
+bit_bids_1st = bit_bids[0]                                  #빗썸 매수 1호가, 잔량
+bit_asks = bit_orderbook['asks']                            #빗썸 매도대기
+bit_asks_1st = bit_asks[0]                                  #빗썸 매도 1호가, 잔량
+bithumb_1st_bids_price = int(bit_bids_1st['price'])         #빗썸 1호가 매도 가격
+bithumb_1st_bids_quantity = bit_bids_1st['quantity']        #빗썸 1호가 매도 잔량
+bithumb_1st_asks_price = int(bit_asks_1st['price'])         #빗썸 1호가 매수 가격
+bithumb_1st_asks_quantity = bit_asks_1st['quantity']        #빗썸 1호가 매수 잔량
 
-print('빗썸 즉시매도 가격:', bit_bids_1st['price'])
-print('빗썸 즉시매도 잔량:', bit_bids_1st['quantity'])
-print('빗썸 즉시매수 가격:', bit_asks_1st['price'])
-print('빗썸 즉시매도 잔량:', bit_asks_1st['quantity'])
+print('빗썸 즉시매도 가격:', bithumb_1st_bids_price)
+print('빗썸 즉시매도 잔량:', bithumb_1st_bids_quantity)
+print('빗썸 즉시매수 가격:', bithumb_1st_asks_price)
+print('빗썸 즉시매수 잔량:', bithumb_1st_asks_quantity)
+print()
 
-up_orderbook = pyupbit.get_orderbook('KRW-USDT')    #업빗 오더북
-up_1st = up_orderbook['orderbook_units'][0]         #업빗 매수매도대기 1호가, 잔량
+up_orderbook = pyupbit.get_orderbook('KRW-USDT')            #업빗 오더북
+up_1st = up_orderbook['orderbook_units'][0]                 #업빗 매수매도대기 1호가, 잔량
+upbit_1st_bids_price = int(up_1st['bid_price'])             #업빗 1호가 매도 가격
+upbit_1st_asks_size = up_1st['bid_size']                    #업빗 1호가 매도 잔량
+upbit_1st_asks_price = int(up_1st['ask_price'])             #업빗 1호가 매수 가격
+upbit_1st_asks_size = up_1st['ask_size']                    #업빗 1호가 매수 잔량
 
-print('업빗 즉시매도 가격:', up_1st['bid_price'])
-print('업빗 즉시매도 잔량:', up_1st['bid_size'])
-print('업빗 즉시매수 가격:', up_1st['ask_price'])
-print('업빗 즉시매도 잔량:', up_1st['ask_size'])
+print('업빗 즉시매도 가격:', upbit_1st_bids_price)
+print('업빗 즉시매도 잔량:', upbit_1st_asks_size)
+print('업빗 즉시매수 가격:', upbit_1st_asks_price)
+print('업빗 즉시매수 잔량:', upbit_1st_asks_size)
+print()
 
 
-bit_balance = bithumb.get_balance('USDT')   #빗썸 잔고 조회
-up_balance_coin = upbit.get_balance('KRW-USDT')      #업빗 잔고 조회
+#################################################################################################
+###### 업비트의 매수대기 1호가 - 빗썸의 매도대기 1호가 ≥ 2원 이면 업비트에서 매도, 빗썸에서 매수 ######
+#################################################################################################
+
+if (upbit_1st_asks_price - bithumb_1st_bids_price) >= 2:
+    ##1. 업비트 매도, 빗썸 매수 로직 작성.
+    ##2. 텔레그램으로 알림.
+    print("업비트가 더 비쌈.")
+
+
+################################################################################################################################
+###### 빗썸의 매수대기 1호가 - 업비트의 매도대기 1호가 ≥ 2원 이면 업비트에서 매수, 빗썸에서 매도(이런 경우는 희박하기 때문에 전송) ######
+################################################################################################################################
+
+if (bithumb_1st_asks_price - upbit_1st_bids_price) >= 2:
+    ##업비트 매수, 빗썸 매도 전송 로직 작성.
+    print("빗썸이 더 비쌈.")
+
+
+bit_balance = bithumb.get_balance('USDT')                   #빗썸 잔고 조회
+up_balance_coin = upbit.get_balance('KRW-USDT')             #업빗 잔고 조회
 up_balance_krw = upbit.get_balance('KRW')
 print('빗썸 테더 잔고:', bit_balance[0])
 print('빗썸 원화 잔고:', bit_balance[2])
 print('업빗 테더 잔고:', up_balance_coin)
 print('업빗 원화 잔고:', up_balance_krw)
+print()
 
+
+'''
 def repeat_task():
     while True:
         # 여기에 실행할 코드를 추가하세요
@@ -50,6 +82,14 @@ def repeat_task():
 
 # 함수 호출
 repeat_task()
+'''
+
+
+
+
+
+
+
 
 # Coins = pyupbit.get_tickers(fiat="KRW")
 
