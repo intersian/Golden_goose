@@ -1,0 +1,79 @@
+# Coins = pyupbit.get_tickers(fiat="KRW")
+
+'''
+# 업비트 현재가 매수매도 
+for coin in Coins:
+    print(coin, pyupbit.get_current_price(coin))
+    time.sleep(0.1)
+
+    if coin == "KRW-BTC" or coin == "KRW-TRX":
+        upbit.buy_market_order("KRW-XRP", 10000)
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!BUY DONE : ", coin)
+
+
+btc_balance = upbit.get_balance("KRW-BTC")
+
+print(upbit.sell_market_order("KRW-BTC", btc_balance))
+'''
+
+
+'''
+# 지정가 매수매도
+btc_now_price = pyupbit.get_current_price("KRW-BTC")
+btc_now_price = btc_now_price * 0.998
+
+won = 10000
+
+print(upbit.buy_limit_order("KRW-BTC", pyupbit.get_tick_size(btc_now_price), (won / btc_now_price) ))
+'''
+
+
+'''
+# 내 코인 잔고와 수익률 계산
+my_balances = upbit.get_balances()
+
+for coin_balance in my_balances:
+    ticker = coin_balance['currency']
+    if ticker == "KRW" or ticker == "XRP":
+        continue
+
+    # print(coin_balance)
+    # print(ticker, coin_balance['balance'], coin_balance['avg_buy_price'])
+
+    nowPrice = pyupbit.get_current_price("KRW-" + ticker)
+    avg_price = float(coin_balance['avg_buy_price'])
+
+    print("nowPrice :: ", nowPrice)
+
+    revenu_rate = (nowPrice - avg_price) / avg_price * 100.0
+    print("revenu_rate :: ", revenu_rate)
+
+    if revenu_rate >= 1.5:
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!in")
+        print(upbit.sell_limit_order("KRW-" + ticker, pyupbit.get_tick_size(nowPrice * 1.001), coin_balance['balance']))
+
+
+# print(my_balances)
+# [{'currency': 'BTC', 'balance': '0.00183575', 'locked': '0', 'avg_buy_price': '97033396.27944982', 'avg_buy_price_modified': False, 'unit_currency': 'KRW'},
+#  {'currency': 'KRW', 'balance': '0.5230437', 'locked': '0', 'avg_buy_price': '0', 'avg_buy_price_modified': True, 'unit_currency': 'KRW'},
+#  {'currency': 'XRP', 'balance': '0.00000062', 'locked': '0', 'avg_buy_price': '905.99999974', 'avg_buy_price_modified': False, 'unit_currency': 'KRW'},
+#  {'currency': 'SC', 'balance': '570.16536776', 'locked': '0', 'avg_buy_price': '16.65', 'avg_buy_price_modified': False, 'unit_currency': 'KRW'},
+#  {'currency': 'SHIB', 'balance': '505986.84210526', 'locked': '0', 'avg_buy_price': '0.057', 'avg_buy_price_modified': False, 'unit_currency': 'KRW'}]
+'''
+
+
+'''
+# 차트 데이터 보기
+tickers = pyupbit.get_tickers("KRW")
+
+for ticker in tickers:
+    if ticker == "KRW-BTC":
+        df = pyupbit.get_ohlcv(ticker, interval="day")
+        # print(df['open'].iloc[-2])
+        # print(df['open'].iloc[-1])
+        print(df)
+        break
+'''
+
+
+
