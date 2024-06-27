@@ -16,30 +16,92 @@ with open("keys.txt") as f:
 # 거래할 수량 설정 (예: 1 USDT)
 trade_amount = 4
 
-bit_orderbook = pybithumb.get_orderbook('USDT')   # 빗썸 오더북
-bit_bids = bit_orderbook['bids']                  # 빗썸 매수대기
-bit_bids_1st = bit_bids[0]                        # 빗썸 매수 1호가, 잔량
-bit_asks = bit_orderbook['asks']                  # 빗썸 매도대기
-bit_asks_1st = bit_asks[0]                        # 빗썸 매도 1호가, 잔량
+def get_bithumb_orderbook():    # 빗썸 매수매도 1호가 및 잔량 호출 함수
+    bit_orderbook = pybithumb.get_orderbook('USDT')   # 빗썸 오더북
+    bit_bids = bit_orderbook['bids']                  # 빗썸 매수대기
+    bit_bids_1st = bit_bids[0]                        # 빗썸 매수 1호가, 잔량
+    bit_asks = bit_orderbook['asks']                  # 빗썸 매도대기
+    bit_asks_1st = bit_asks[0]                        # 빗썸 매도 1호가, 잔량
 
-print('빗썸 즉시매도 가격:', bit_bids_1st['price'])
-print('빗썸 즉시매도 잔량:', bit_bids_1st['quantity'])
-print('빗썸 즉시매수 가격:', bit_asks_1st['price'])
-print('빗썸 즉시매도 잔량:', bit_asks_1st['quantity'])
+    bithumb_1st_bids_price = int(bit_bids_1st['price'])         # 빗썸 1호가 매수 가격
+    bithumb_1st_bids_quantity = bit_bids_1st['quantity']        # 빗썸 1호가 매수 잔량
+    bithumb_1st_asks_price = int(bit_asks_1st['price'])         # 빗썸 1호가 매도 가격
+    bithumb_1st_asks_quantity = bit_asks_1st['quantity']        # 빗썸 1호가 매도 잔량
 
-up_orderbook = pyupbit.get_orderbook('KRW-USDT')    # 업빗 오더북
-up_1st = up_orderbook['orderbook_units'][0]         # 업빗 매수매도대기 1호가, 잔량
+    return bithumb_1st_bids_price, bithumb_1st_bids_quantity, bithumb_1st_asks_price, bithumb_1st_asks_quantity
 
-print('업빗 즉시매도 가격:', up_1st['bid_price'])
-print('업빗 즉시매도 잔량:', up_1st['bid_size'])
-print('업빗 즉시매수 가격:', up_1st['ask_price'])
-print('업빗 즉시매도 잔량:', up_1st['ask_size'])
+    print('빗썸 즉시매도 가격:', bit_bids_1st['price'])
+    print('빗썸 즉시매도 잔량:', bit_bids_1st['quantity'])
+    print('빗썸 즉시매수 가격:', bit_asks_1st['price'])
+    print('빗썸 즉시매도 잔량:', bit_asks_1st['quantity'])
+
+def get_upbit_orderbook():    # 업빗 매수매도 1호가 및 잔량 호출 함수
+    up_orderbook = pyupbit.get_orderbook('KRW-USDT')    # 업빗 오더북
+    up_1st = up_orderbook['orderbook_units'][0]         # 업빗 매수매도대기 1호가, 잔량
+
+    upbit_1st_bids_price = int(up_1st['bid_price'])             # 업빗 1호가 매수 가격
+    upbit_1st_bids_size = up_1st['bid_size']                    # 업빗 1호가 매수 잔량
+    upbit_1st_asks_price = int(up_1st['ask_price'])             # 업빗 1호가 매도 가격
+    upbit_1st_asks_size = up_1st['ask_size']                    # 업빗 1호가 매도 잔량
+
+    return upbit_1st_bids_price, upbit_1st_bids_size, upbit_1st_asks_price, upbit_1st_asks_size
+
+def get_balances():
+    bit_balance = bithumb.get_balance('USDT')   # 빗썸 잔고 조회
+    up_balance_coin = upbit.get_balance('KRW-USDT')   # 업빗 잔고 조회
+    up_balance_krw = upbit.get_balance('KRW')
+    return bit_balance, up_balance_coin, up_balance_krw
+
+def trade():
+    bithumb_1st_bids_price, bithumb_1st_bids_quantity, bithumb_1st_asks_price, bithumb_1st_asks_quantity = get_bithumb_orderbook()
+    upbit_1st_bids_price, upbit_1st_bids_size, upbit_1st_asks_price, upbit_1st_asks_size = get_upbit_orderbook()
+    bit_balance, up_balance_coin, up_balance_krw = get_balances()
+
+    print('빗썸 즉시매도 가격:', bithumb_1st_bids_price)
+    print('빗썸 즉시매도 잔량:', bithumb_1st_bids_quantity)
+    print('빗썸 즉시매수 가격:', bithumb_1st_asks_price)
+    print('빗썸 즉시매수 잔량:', bithumb_1st_asks_quantity)
+    print()
+
+    print('업빗 즉시매도 가격:', upbit_1st_bids_price)
+    print('업빗 즉시매도 잔량:', upbit_1st_bids_size)
+    print('업빗 즉시매수 가격:', upbit_1st_asks_price)
+    print('업빗 즉시매수 잔량:', upbit_1st_asks_size)
+    print()
 
 
-bit_balance = bithumb.get_balance('USDT')   # 빗썸 잔고 조회
-up_balance_coin = upbit.get_balance('KRW-USDT')      # 업빗 잔고 조회
-up_balance_krw = upbit.get_balance('KRW')
-print('빗썸 테더 잔고:', bit_balance[0])
-print('빗썸 원화 잔고:', bit_balance[2])
-print('업빗 테더 잔고:', up_balance_coin)
-print('업빗 원화 잔고:', up_balance_krw)
+    print('빗썸 코인 잔고:', bit_balance[0])
+    print('빗썸 원화 잔고:', bit_balance[2])
+    print('업빗 코인 잔고:', up_balance_coin)
+    print('업빗 원화 잔고:', up_balance_krw)
+    print()
+
+    # 빗썸 매도 - 업빗 매수
+    if (upbit_1st_asks_price - bithumb_1st_bids_price) >= 2:
+        amount = min(upbit_1st_asks_size * 0.7, bithumb_1st_bids_quantity * 0.7, up_balance_coin)   # 0.7: 슬리피지에 의한 손실 방지
+        if amount > 0:
+            print('업비트에서 ', amount, '개를 매도하고 빗썸에서 매수합니다.')
+            try:
+                upbit.sell_market_order('KRW-USDT', amount)  # 업비트에서 시장가 매도
+                bithumb.buy_market_order('USDT', amount)  # 빗썸에서 시장가 매수
+            except Exception as e:
+                print('거래 실패: ', e)
+
+    # 업빗 매도 - 빗썸 매수
+    if (bithumb_1st_asks_price - upbit_1st_bids_price) >= 2:
+        amount = min(bithumb_1st_asks_quantity * 0.7, upbit_1st_bids_size * 0.7, bit_balance[0])
+        if amount > 0:
+            print('빗썸에서 ', amount, ' 개를 매도하고 업비트에서 매수합니다.')
+            try:
+                bithumb.sell_market_order('USDT', amount)  # 빗썸에서 시장가 매도
+                upbit.buy_market_order('KRW-USDT', amount)  # 업비트에서 시장가 매수
+            except Exception as e:
+                print('거래 실패: ', e)
+
+while True:
+    try:
+        trade()
+        time.sleep(1)  # 1초마다 반복
+    except Exception as e:
+        print('Error: ', e)
+        time.sleep(5)
