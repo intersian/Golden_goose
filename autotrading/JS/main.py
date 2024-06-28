@@ -76,9 +76,9 @@ def trade():
     print('업빗 원화 잔고:', up_balance_krw)
     print()
 
-    # 빗썸 매도 - 업빗 매수
-    if (upbit_1st_asks_price - bithumb_1st_bids_price) >= 2:
-        amount = min(upbit_1st_asks_size * 0.7, bithumb_1st_bids_quantity * 0.7, up_balance_coin)   # 0.7: 슬리피지에 의한 손실 방지
+    # 업빗 매도 - 빗썸 매수
+    if (upbit_1st_bids_price - bithumb_1st_asks_price) >= 2:
+        amount = min(upbit_1st_bids_size * 0.7, bithumb_1st_asks_quantity * 0.7, up_balance_coin)   # 0.7: 슬리피지에 의한 손실 방지
         if amount > 0:
             print('업비트에서 ', amount, '개를 매도하고 빗썸에서 매수합니다.')
             try:
@@ -87,9 +87,9 @@ def trade():
             except Exception as e:
                 print('거래 실패: ', e)
 
-    # 업빗 매도 - 빗썸 매수
-    if (bithumb_1st_asks_price - upbit_1st_bids_price) >= 2:
-        amount = min(bithumb_1st_asks_quantity * 0.7, upbit_1st_bids_size * 0.7, bit_balance[0])
+    # 빗썸 매도 - 업빗 매수
+    if (bithumb_1st_bids_price - upbit_1st_asks_price) >= 2:
+        amount = min(bithumb_1st_bids_quantity * 0.7, upbit_1st_asks_size * 0.7, bit_balance[0])
         if amount > 0:
             print('빗썸에서 ', amount, ' 개를 매도하고 업비트에서 매수합니다.')
             try:
