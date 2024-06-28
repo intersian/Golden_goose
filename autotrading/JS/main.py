@@ -79,12 +79,15 @@ def trade():
 
     # 빗썸 매도 - 업빗 매수
     if (bithumb_1st_bids_price - upbit_1st_asks_price) >= 2:
-        amount = min(bithumb_1st_bids_quantity * 0.7, upbit_1st_asks_size * 0.7, bit_balance[0])
+        usdt_amount = bithumb_balance_krw / upbit_1st_asks_price            #빗썸 원화 잔고에 해당하는 테더 수량
+        amount = min(usdt_amount, bithumb_1st_bids_quantity * 0.7, upbit_1st_asks_size * 0.7, bithumb_balance_coin)
         if amount > 0:
-            print('빗썸에서 ', amount, ' 개를 매도하고 업비트에서 매수합니다.')
+            print('빗썸 - ', bithumb_1st_asks_price, '원, ', amount, '개 매도')
+            print('업빗 - ', upbit_1st_bids_price, '원, ',  amount, ' 개 매수')
             try:
-                bithumb.sell_market_order('USDT', amount)  # 빗썸에서 시장가 매도
-                upbit.buy_market_order('KRW-USDT', amount)  # 업비트에서 시장가 매수
+                bithumb.sell_market_order('USDT', amount)      # 빗썸 시장가 매도
+                upbit.buy_market_order('KRW-USDT', amount)     # 업빗 시장가 매수
+                breakpoint
             except Exception as e:
                 print('거래 실패: ', e)
 
