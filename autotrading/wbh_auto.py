@@ -44,7 +44,7 @@ def get_balances():
     upbit_balance_krw = int(upbit.get_balance('KRW'))               # 업빗 원화 잔고
     return bithumb_balance_coin, bithumb_balance_krw, upbit_balance_coin, upbit_balance_krw
 
-def trade():
+def trade(flag):
     bithumb_1st_bids_price, bithumb_1st_bids_quantity, bithumb_1st_asks_price, bithumb_1st_asks_quantity = get_bithumb_orderbook()
     upbit_1st_bids_price, upbit_1st_bids_size, upbit_1st_asks_price, upbit_1st_asks_size = get_upbit_orderbook()
     bithumb_balance_coin, bithumb_balance_krw, upbit_balance_coin, upbit_balance_krw = get_balances()
@@ -63,20 +63,25 @@ def trade():
     print('업빗 원화 잔고 :', format(upbit_balance_krw, ','), '원,', format(upbit_balance_coin, ','), '개')
     print()
     
+    bithumb_amount = (bithumb_balance_krw / bithumb_1st_asks_price) * 0.7
+    upbit_amount = upbit_balance_coin * 0.7                                          #업빗 원화 잔고에 해당하는 테더 수량
+    amount = min(bithumb_amount, upbit_amount, upbit_1st_bids_size * 0.7, bithumb_1st_asks_quantity * 0.7)
+
     #################################################################################################
     ##### 업빗 즉시매도 가격 - 빗썸 즉시매수 가격 ≥ 2원 이면 빗썸에서 매수, 업빗에서 매도 ################
     #################################################################################################
     # 빗썸에서 매수하고 업빗에서 매도하는 로직
     if (upbit_1st_bids_price - bithumb_1st_asks_price) >= 2:
-        usdt_amount = bithumb_balance_krw / upbit_1st_asks_price            #빗썸 원화 잔고에 해당하는 테더 수량
-        amount = min(usdt_amount, upbit_1st_bids_size * 0.7, bithumb_1st_asks_quantity * 0.7, upbit_balance_coin)
+        bithumb_amount = (bithumb_balance_krw / bithumb_1st_asks_price) * 0.7
+        upbit_amount = upbit_balance_coin * 0.7                                          #업빗 원화 잔고에 해당하는 테더 수량
+        amount = min(bithumb_amount, upbit_amount, upbit_1st_bids_size * 0.7, bithumb_1st_asks_quantity * 0.7)
         if amount > 0:
+            flag = "Y"
             print('빗썸 - ', bithumb_1st_asks_price, '원, ', amount, '개 매수')
-            print('업빗 - ', upbit_1st_bids_price, '원, ',  amount, ' 개 매도')
+            print('업빗 - ', upbit_1st_bids_price, '원, ',  amount, '개 매도')
             try:
                 bithumb.buy_market_order('USDT', amount)       # 빗썸 시장가 매수
                 upbit.sell_market_order('KRW-USDT', amount)    # 업빗 시장가 매도
-                breakpoint
             except Exception as e:
                 print('거래 실패: ', e)
 
@@ -84,23 +89,27 @@ def trade():
     ##### 빗썸 즉시매수 가격 - 업빗 즉시매도 가격 ≥ 2원 이면 빗썸에서 매도, 업빗에서 매수(이런 경우는 희박하기 때문에 전송) ################
     ################################################################################################################################
     # 빗썸에서 매도하고 업비트에서 매수하는 로직
-    if (bithumb_1st_asks_price - upbit_1st_bids_price) >= 2:
-        usdt_amount = bithumb_balance_krw / upbit_1st_asks_price            #빗썸 원화 잔고에 해당하는 테더 수량
-        amount = min(usdt_amount, bithumb_1st_asks_quantity * 0.7, upbit_1st_bids_size * 0.7, bithumb_balance_coin)
-        if amount > 0:
-            print('빗썸 - ', bithumb_1st_asks_price, '원, ', amount, '개 매도')
-            print('업빗 - ', upbit_1st_bids_price, '원, ',  amount, ' 개 매수')
-            try:
-                bithumb.sell_market_order('USDT', amount)      # 빗썸 시장가 매도
-                upbit.buy_market_order('KRW-USDT', amount)     # 업빗 시장가 매수
-                breakpoint
-            except Exception as e:
-                print('거래 실패: ', e)
+    # if (bithumb_1st_asks_price - upbit_1st_bids_price) >= 2:
+    #     upbit_amount = upbit_balance_coin                                          #업빗 원화 잔고에 해당하는 테더 수량
+    #     amount = min(upbit_amount, bithumb_1st_asks_quantity * 0.7, upbit_1st_bids_size * 0.7)
+    #     if amount > 0:
+    #         print('빗썸 - ', bithumb_1st_asks_price, '원, ', amount, '개 매도')
+    #         print('업빗 - ', upbit_1st_bids_price, '원, ',  amount, '개 매수')
+            # try:
+            #     bithumb.sell_market_order('USDT', str(amount))      # 빗썸 시장가 매도
+            #     upbit.buy_market_order('KRW-USDT', amount)     # 업빗 시장가 매수
+            # except Exception as e:
+            #     print('거래 실패: ', e)
+
+    return flag
     
 while True:
     try:
-        trade()
-        time.sleep(0.2)  # 1초마다 반복
+        flag = "N"
+        trade(flag)
+        time.sleep(1)  # 1초마다 반복
+        if trade(flag) == "Y":
+            exit()
     except Exception as e:
         print('Error: ', e)
         time.sleep(5)
