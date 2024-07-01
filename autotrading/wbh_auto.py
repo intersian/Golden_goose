@@ -63,10 +63,6 @@ def trade(flag):
     print('업빗 원화 잔고 :', format(upbit_balance_krw, ','), '원,', format(upbit_balance_coin, ','), '개')
     print()
     
-    bithumb_amount = (bithumb_balance_krw / bithumb_1st_asks_price) * 0.7
-    upbit_amount = upbit_balance_coin * 0.7                                          #업빗 원화 잔고에 해당하는 테더 수량
-    amount = min(bithumb_amount, upbit_amount, upbit_1st_bids_size * 0.7, bithumb_1st_asks_quantity * 0.7)
-
     #################################################################################################
     ##### 업빗 즉시매도 가격 - 빗썸 즉시매수 가격 ≥ 2원 이면 빗썸에서 매수, 업빗에서 매도 ################
     #################################################################################################
@@ -107,7 +103,7 @@ while True:
     try:
         flag = "N"
         trade(flag)
-        time.sleep(1)  # 1초마다 반복
+        time.sleep(0.15)  # 1초마다 반복
         if trade(flag) == "Y":
             exit()
     except Exception as e:
