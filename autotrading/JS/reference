@@ -26,3 +26,31 @@ def withdraw_coin(self, withdraw_unit:float, target_address:str, destination_tag
         return resp['order_id']
     except Exception:
         return resp
+
+
+# 텔레그램
+pip3 install python-telegram-bot
+
+import telegram
+
+token = "token number"  #token 번호 - telegram 채팅창당 1개
+bot = telegram.Bot(token)
+bot.sendMessage(chat_id= 사용자 id, text="원하는 문구") #chat id - telegram 계정당 1개
+
+
+#token 번호
+
+BotFather에서 '/newbot'을 하여 새로운 채팅창을 만들면 HTTP API 정보를 알려준다.
+
+그 뒤에 나오는 숫자와 영문 알파벳 조합들이 token 번호이다.
+
+#chat id
+
+아래의 코드로 텔레그램으로 봇에게 메세지를 전송하면 chat id를 출력해준다.
+
+import telegram
+
+token = "token number"
+bot = telegram.Bot(token)
+updates = bot.getUpdates()
+print(updates[0].message.chat_id)

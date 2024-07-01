@@ -20,9 +20,9 @@ def get_bithumb_orderbook():    # 빗썸 매수매도 1호가 및 잔량 호출 
     bit_asks_1st = bit_asks[0]                        # 빗썸 매도 1호가, 잔량
 
     bithumb_1st_bids_price = int(bit_bids_1st['price'])         # 빗썸 1호가 매수 가격
-    bithumb_1st_bids_quantity = bit_bids_1st['quantity']        # 빗썸 1호가 매수 잔량
+    bithumb_1st_bids_quantity = int(bit_bids_1st['quantity'])        # 빗썸 1호가 매수 잔량
     bithumb_1st_asks_price = int(bit_asks_1st['price'])         # 빗썸 1호가 매도 가격
-    bithumb_1st_asks_quantity = bit_asks_1st['quantity']        # 빗썸 1호가 매도 잔량
+    bithumb_1st_asks_quantity = int(bit_asks_1st['quantity'])        # 빗썸 1호가 매도 잔량
 
     return bithumb_1st_bids_price, bithumb_1st_bids_quantity, bithumb_1st_asks_price, bithumb_1st_asks_quantity
 
@@ -30,9 +30,9 @@ def get_upbit_orderbook():    # 업빗 매수매도 1호가 및 잔량 호출 �
     up_orderbook = pyupbit.get_orderbook('KRW-USDT')    # 업빗 오더북
     up_1st = up_orderbook['orderbook_units'][0]         # 업빗 매수매도대기 1호가, 잔량
     upbit_1st_bids_price = int(up_1st['bid_price'])             # 업빗 1호가 매수 가격
-    upbit_1st_bids_size = up_1st['bid_size']                    # 업빗 1호가 매수 잔량
+    upbit_1st_bids_size = int(up_1st['bid_size'])                    # 업빗 1호가 매수 잔량
     upbit_1st_asks_price = int(up_1st['ask_price'])             # 업빗 1호가 매도 가격
-    upbit_1st_asks_size = up_1st['ask_size']                    # 업빗 1호가 매도 잔량
+    upbit_1st_asks_size = int(up_1st['ask_size'])                    # 업빗 1호가 매도 잔량
 
     return upbit_1st_bids_price, upbit_1st_bids_size, upbit_1st_asks_price, upbit_1st_asks_size
 
@@ -65,8 +65,8 @@ def trade():
 
     # 업빗 매도 - 빗썸 매수
     if (upbit_1st_bids_price - bithumb_1st_asks_price) >= 2:
-        usdt_amount = bithumb_balance_krw / upbit_1st_asks_price            #빗썸 원화 잔고에 해당하는 테더 수량
-        amount = min(usdt_amount, upbit_1st_bids_size * 0.7, bithumb_1st_asks_quantity * 0.7, upbit_balance_coin)
+        # usdt_amount = bithumb_balance_krw / upbit_1st_asks_price            #빗썸 원화 잔고에 해당하는 테더 수량
+        amount = min(upbit_1st_bids_size * 0.7, bithumb_1st_asks_quantity * 0.7, upbit_balance_coin)
         if amount > 0:
             print('빗썸 - ', bithumb_1st_asks_price, '원, ', amount, '개 매수')
             print('업빗 - ', upbit_1st_bids_price, '원, ',  amount, ' 개 매도')
@@ -79,8 +79,8 @@ def trade():
 
     # 빗썸 매도 - 업빗 매수
     if (bithumb_1st_bids_price - upbit_1st_asks_price) >= 2:
-        usdt_amount = bithumb_balance_krw / upbit_1st_asks_price            #빗썸 원화 잔고에 해당하는 테더 수량
-        amount = min(usdt_amount, bithumb_1st_bids_quantity * 0.7, upbit_1st_asks_size * 0.7, bithumb_balance_coin)
+        # usdt_amount = bithumb_balance_krw / upbit_1st_asks_price            #빗썸 원화 잔고에 해당하는 테더 수량
+        amount = min(bithumb_1st_bids_quantity * 0.7, upbit_1st_asks_size * 0.7, bithumb_balance_coin)
         if amount > 0:
             print('빗썸 - ', bithumb_1st_asks_price, '원, ', amount, '개 매도')
             print('업빗 - ', upbit_1st_bids_price, '원, ',  amount, ' 개 매수')
