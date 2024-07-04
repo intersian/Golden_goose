@@ -58,8 +58,10 @@ def trade():
     print('업빗 즉시매도 가격, 수량 :', format(upbit_1st_bids_price, ','), '원,', format(upbit_1st_bids_size, ','), '개')
     print()
 
-    delta = (upbit_1st_bids_price - bithumb_1st_asks_price)
-    print('업빗 즉시매도-빗썸 즉시매수 가격차: ', delta, '원')
+    delta_1 = (upbit_1st_bids_price - bithumb_1st_asks_price)
+    delta_2 = (bithumb_1st_bids_price - upbit_1st_asks_price)
+    print('업빗 즉시매도-빗썸 즉시매수 가격차: ', delta_1, '원')
+    print('빗썸 즉시매도-업빗 즉시매수 가격차: ', delta_2, '원')
     print()
 
     print('빗썸 원화 잔고 :', format(bithumb_balance_krw, ','), '원,', format(bithumb_balance_coin, ','), '개')
@@ -77,7 +79,7 @@ def trade():
             try:
                 bithumb.buy_market_order('USDT', amount)       # 빗썸 시장가 매수
                 upbit.sell_market_order('KRW-USDT', amount)    # 업빗 시장가 매도
-                profit = (round(upbit_1st_bids_price * 0.9995) - round(bithumb_1st_asks_price * 1.0004)) * amount
+                profit = (round(upbit_1st_bids_price * 0.9995 * amount) - round(bithumb_1st_asks_price * 1.0004 * amount))
                 print('매매수익: ', profit, '원')
                 breakpoint
             except Exception as e:
