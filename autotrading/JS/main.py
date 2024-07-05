@@ -1,6 +1,8 @@
 import pybithumb
 import pyupbit
 import time
+from datetime import datetime
+import csv
 
 with open("keys.txt") as f:
     lines = f.readlines()
@@ -65,22 +67,29 @@ def trade():
     print()
 
     print('빗썸 원화 잔고 :', format(bithumb_balance_krw, ','), '원,', format(bithumb_balance_coin, ','), '개')
-    print()
     print('업빗 원화 잔고 :', format(upbit_balance_krw, ','), '원,', format(upbit_balance_coin, ','), '개')
     print()
 
     # 업빗 매도 - 빗썸 매수
     if (upbit_1st_bids_price - bithumb_1st_asks_price) >= 2:
         # usdt_amount = bithumb_balance_krw / upbit_1st_asks_price            #빗썸 원화 잔고에 해당하는 테더 수량
-        amount = min(upbit_1st_bids_size * 0.7, bithumb_1st_asks_quantity * 0.7, upbit_balance_coin)
+        amount = min(upbit_1st_bids_size * 0.7, bithumb_1st_asks_quantity * 0.7, upbit_balance_coin)    # 업빗 매도 1호가 잔량*0.7, 빗썸 매수 1호가 잔량 * 0.7, 업빗 코인 잔고 중 최솟값
         if amount > 0:
             print('빗썸 - ', bithumb_1st_asks_price, '원, ', amount, '개 매수')
-            print('업빗 - ', upbit_1st_bids_price, '원, ',  amount, ' 개 매도')
+            print('업빗 - ', upbit_1st_bids_price, '원, ',  amount, '개 매도')
             try:
                 bithumb.buy_market_order('USDT', amount)       # 빗썸 시장가 매수
                 upbit.sell_market_order('KRW-USDT', amount)    # 업빗 시장가 매도
-                profit = (round(upbit_1st_bids_price * 0.9995 * amount) - round(bithumb_1st_asks_price * 1.0004 * amount))
-                print('매매수익: ', profit, '원')
+
+                profit = (round(upbit_1st_bids_price * 0.9995 * amount) - round(bithumb_1st_asks_price * 1.0004 * amount))  # 업빗 매도 정산금액(수수료 0.05%) - 빗썸 매수 정산금액(수수료 0.04%)
+                print('매매수익: ', profit, '원')    # 매매수익 출력
+
+                now = datetime.now()
+                f = open('profit.csv', 'a', newline='', encoding='UTF-8')
+                wr = csv.writer(f)
+                wr.writerow([now.strftime('%Y-%m-%d %H:%M:%S'), bithumb_1st_asks_price, upbit_1st_bids_price, amount, profit, '업빗매도-빗썸매수'])
+                f.close()
+
                 breakpoint
             except Exception as e:
                 print('거래 실패: ', e)
@@ -88,15 +97,25 @@ def trade():
     # 빗썸 매도 - 업빗 매수
     if (bithumb_1st_bids_price - upbit_1st_asks_price) >= 2:
         # usdt_amount = bithumb_balance_krw / upbit_1st_asks_price            #빗썸 원화 잔고에 해당하는 테더 수량
-        amount = min(bithumb_1st_bids_quantity * 0.7, upbit_1st_asks_size * 0.7, bithumb_balance_coin)
+        amount = min(bithumb_1st_bids_quantity * 0.7, upbit_1st_asks_size * 0.7, bithumb_balance_coin)  # 빗썸 매도 1호가 잔량*0.7, 업빗 매수 1호가 잔량*0.7, 빗썸 코인 잔고 중 최솟값
         if amount > 0:
             print('빗썸 - ', bithumb_1st_asks_price, '원, ', amount, '개 매도')
             print('업빗 - ', upbit_1st_bids_price, '원, ',  amount, '개 매수')
             try:
                 bithumb.sell_market_order('USDT', amount)      # 빗썸 시장가 매도
                 upbit.buy_market_order('KRW-USDT', amount)     # 업빗 시장가 매수
-                profit = (round(bithumb_1st_asks_price * 0.9996) - round(upbit_1st_bids_price * 1.0005)) * amount
-                print('매매수익: ', profit, '원')
+
+                profit = (round(bithumb_1st_asks_price * 0.9996) - round(upbit_1st_bids_price * 1.0005)) * amount   # 빗썸 매도 정산금액(수수료 0.04%) - 업빗 매도 정산금액(수수료 0.05%)
+                print('매매수익: ', profit, '원')    # 매매수익 출력
+
+                now = datetime.now()
+                f = open('profit.csv', 'a', newline='', encoding='UTF-8')
+                wr = csv.writer(f)
+                wr.writerow(
+                    [now.strftime('%Y-%m-%d %H:%M:%S'), upbit_1st_asks_price, bithumb_1st_bids_price, amount, profit,
+                     '빗썸매도-업빗매수'])
+                f.close()
+
                 breakpoint
             except Exception as e:
                 print('거래 실패: ', e)
@@ -104,7 +123,7 @@ def trade():
 while True:
     try:
         trade()
-        time.sleep(1)  # 1초마다 반복
+        time.sleep(0.5)  # 1초마다 반복
     except Exception as e:
         print('Error: ', e)
         time.sleep(5)
