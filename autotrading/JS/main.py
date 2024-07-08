@@ -7,21 +7,21 @@ import telegram
 import asyncio
 
 
-async def telegram_send(text): #실행시킬 함수명 임의지정
+bit_ticker = 'BCH'      # 거래 코인 빗썸 티커
+up_ticker = 'KRW-BCH'   # 거래 코인 업빗 티커
+price_diff = 650    # 매매 가격차(수수료 0.09% 이상)
+min_amount = 0.02   # 해당 코인 최소 거래 수량(5000원 이상)
+round_num = 2   # 최소 매매수량 소수점 자릿수
+
+
+async def telegram_send(text):  # 텔레그램 메시지 전송 함수
     chat_id = 6067152407
     token = "7449204335:AAGhIXcV8x1I8TRrB-yKG-UoXZ7YxPJyN9s"
     bot = telegram.Bot(token = token)
     await bot.send_message(chat_id,text)
 
 
-bit_ticker = 'BCH'
-up_ticker = 'KRW-BCH'
-price_diff = 650
-min_amount = 0.02
-round_num = 2   # 최소 매매수량 소수점 자릿수
-
-
-with open("keys.txt") as f:
+with open("keys.txt") as f:     # txt파일 내 업비트, 빗썸 보안키
     lines = f.readlines()
     bit_key = lines[0].strip()
     bit_secret = lines[1].strip()
