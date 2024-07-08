@@ -1,27 +1,11 @@
-import uuid
-import jwt
-import pybithumb
-import pyupbit
+import telegram
+import asyncio
 
 
-with open("keys.txt") as f:
-    lines = f.readlines()
-    bit_key = lines[0].strip()
-    bit_secret = lines[1].strip()
-    bithumb = pybithumb.Bithumb(bit_key, bit_secret)
+async def telegram_send(text): #실행시킬 함수명 임의지정
+    chat_id = 6067152407
+    token = "7449204335:AAGhIXcV8x1I8TRrB-yKG-UoXZ7YxPJyN9s"
+    bot = telegram.Bot(token = token)
+    await bot.send_message(chat_id,text)
 
-    up_key = lines[2].strip()
-    up_secret = lines[3].strip()
-    upbit = pyupbit.Upbit(up_key, up_secret)
-
-def transfer_bithumb_to_upbit(amount, address):
-    currency = "USDT"
-    destination = address  # 업비트의 USDT 지갑 주소
-    response = bithumb.bithumb_private_api('/trade/btc_withdrawal', {
-        'currency': currency,
-        'units': amount,
-        'address': destination,
-    })
-    return response
-
-transfer_bithumb_to_upbit(4, upbit_wallet_address)
+asyncio.run(telegram_send()) #봇 실행하는 코드

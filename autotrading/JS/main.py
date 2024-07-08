@@ -3,11 +3,22 @@ import pyupbit
 import time
 from datetime import datetime
 import csv
+import telegram
+import asyncio
 
-bit_ticker = 'DOGE'
-up_ticker = 'KRW-DOGE'
-price_diff = 0.5
-min_amount = 40
+
+async def telegram_send(text): #실행시킬 함수명 임의지정
+    chat_id = 6067152407
+    token = "7449204335:AAGhIXcV8x1I8TRrB-yKG-UoXZ7YxPJyN9s"
+    bot = telegram.Bot(token = token)
+    await bot.send_message(chat_id,text)
+
+
+bit_ticker = 'BCH'
+up_ticker = 'KRW-BCH'
+price_diff = 650
+min_amount = 0.02
+round_num = 2   # 최소 매매수량 소수점 자릿수
 
 
 with open("keys.txt") as f:
@@ -20,7 +31,7 @@ with open("keys.txt") as f:
     up_secret = lines[3].strip()
     upbit = pyupbit.Upbit(up_key, up_secret)
 
-def get_bithumb_orderbook(bit_ticker):    # 빗썸 매수매도 1호가 및 잔량 호출 함수
+def get_bithumb_orderbook(bit_ticker, round_num):    # 빗썸 매수매도 1호가 및 잔량 호출 함수
     bit_orderbook = pybithumb.get_orderbook(bit_ticker)   # 빗썸 오더북
     bit_bids = bit_orderbook['bids']                  # 빗썸 매수대기
     bit_bids_1st = bit_bids[0]                        # 빗썸 매수 1호가, 잔량
@@ -28,34 +39,34 @@ def get_bithumb_orderbook(bit_ticker):    # 빗썸 매수매도 1호가 및 잔�
     bit_asks_1st = bit_asks[0]                        # 빗썸 매도 1호가, 잔량
 
     bithumb_1st_bids_price = bit_bids_1st['price']         # 빗썸 1호가 매수 가격
-    bithumb_1st_bids_quantity = int(bit_bids_1st['quantity'])        # 빗썸 1호가 매수 잔량
+    bithumb_1st_bids_quantity = round(bit_bids_1st['quantity'], round_num)        # 빗썸 1호가 매수 잔량
     bithumb_1st_asks_price = bit_asks_1st['price']         # 빗썸 1호가 매도 가격
-    bithumb_1st_asks_quantity = int(bit_asks_1st['quantity'])        # 빗썸 1호가 매도 잔량
+    bithumb_1st_asks_quantity = round(bit_asks_1st['quantity'], round_num)        # 빗썸 1호가 매도 잔량
 
     return bithumb_1st_bids_price, bithumb_1st_bids_quantity, bithumb_1st_asks_price, bithumb_1st_asks_quantity
 
-def get_upbit_orderbook(up_ticker):    # 업빗 매수매도 1호가 및 잔량 호출 함수
+def get_upbit_orderbook(up_ticker, round_num):    # 업빗 매수매도 1호가 및 잔량 호출 함수
     up_orderbook = pyupbit.get_orderbook(up_ticker)    # 업빗 오더북
     up_1st = up_orderbook['orderbook_units'][0]         # 업빗 매수매도대기 1호가, 잔량
     upbit_1st_bids_price = up_1st['bid_price']             # 업빗 1호가 매수 가격
-    upbit_1st_bids_size = int(up_1st['bid_size'])                    # 업빗 1호가 매수 잔량
+    upbit_1st_bids_size = round(up_1st['bid_size'], round_num)                    # 업빗 1호가 매수 잔량
     upbit_1st_asks_price = up_1st['ask_price']             # 업빗 1호가 매도 가격
-    upbit_1st_asks_size = int(up_1st['ask_size'])                    # 업빗 1호가 매도 잔량
+    upbit_1st_asks_size = round(up_1st['ask_size'], round_num)                    # 업빗 1호가 매도 잔량
 
     return upbit_1st_bids_price, upbit_1st_bids_size, upbit_1st_asks_price, upbit_1st_asks_size
 
-def get_balances(bit_ticker, up_ticker):
+def get_balances(bit_ticker, up_ticker, round_num):
     bithumb_balance = bithumb.get_balance(bit_ticker)
-    bithumb_balance_coin = int(bithumb_balance[0])                  # 빗썸 테더 잔고
+    bithumb_balance_coin = round(bithumb_balance[0], round_num)                  # 빗썸 테더 잔고
     bithumb_balance_krw = int(bithumb_balance[2])                   # 빗썸 원화 잔고
-    upbit_balance_coin = int(upbit.get_balance(up_ticker))         # 업빗 테더 잔고
+    upbit_balance_coin = round(upbit.get_balance(up_ticker), round_num)         # 업빗 테더 잔고
     upbit_balance_krw = int(upbit.get_balance('KRW'))               # 업빗 원화 잔고
     return bithumb_balance_coin, bithumb_balance_krw, upbit_balance_coin, upbit_balance_krw
 
-def trade(bit_ticker, up_ticker, price_diff, min_amount):
-    bithumb_1st_bids_price, bithumb_1st_bids_quantity, bithumb_1st_asks_price, bithumb_1st_asks_quantity = get_bithumb_orderbook(bit_ticker)
-    upbit_1st_bids_price, upbit_1st_bids_size, upbit_1st_asks_price, upbit_1st_asks_size = get_upbit_orderbook(up_ticker)
-    bithumb_balance_coin, bithumb_balance_krw, upbit_balance_coin, upbit_balance_krw = get_balances(bit_ticker, up_ticker)
+def trade(bit_ticker, up_ticker, price_diff, min_amount, round_num):
+    bithumb_1st_bids_price, bithumb_1st_bids_quantity, bithumb_1st_asks_price, bithumb_1st_asks_quantity = get_bithumb_orderbook(bit_ticker, round_num)
+    upbit_1st_bids_price, upbit_1st_bids_size, upbit_1st_asks_price, upbit_1st_asks_size = get_upbit_orderbook(up_ticker, round_num)
+    bithumb_balance_coin, bithumb_balance_krw, upbit_balance_coin, upbit_balance_krw = get_balances(bit_ticker, up_ticker, round_num)
 
     print('****** AUTO PROGRAM START ******')
     print('빗썸 즉시매수 가격, 수량 :', format(bithumb_1st_asks_price, ','), '원,', format(bithumb_1st_asks_quantity, ','), '개')
@@ -68,8 +79,8 @@ def trade(bit_ticker, up_ticker, price_diff, min_amount):
 
     delta_1 = (upbit_1st_bids_price - bithumb_1st_asks_price)
     delta_2 = (bithumb_1st_bids_price - upbit_1st_asks_price)
-    print('업빗 즉시매도-빗썸 즉시매수 가격차: ', delta_1, '원')
-    print('빗썸 즉시매도-업빗 즉시매수 가격차: ', delta_2, '원')
+    print('업빗 즉시매도-빗썸 즉시매수 가격차: ', round(delta_1, round_num), '원')
+    print('빗썸 즉시매도-업빗 즉시매수 가격차: ', round(delta_2, round_num), '원')
     print()
 
     print('빗썸 원화 잔고 :', format(bithumb_balance_krw, ','), '원,', format(bithumb_balance_coin, ','), '개')
@@ -79,7 +90,7 @@ def trade(bit_ticker, up_ticker, price_diff, min_amount):
     # 업빗 매도 - 빗썸 매수
     if (upbit_1st_bids_price - bithumb_1st_asks_price) >= price_diff:
         # usdt_amount = bithumb_balance_krw / upbit_1st_asks_price            #빗썸 원화 잔고에 해당하는 테더 수량
-        amount = int(min(upbit_1st_bids_size * 0.7, bithumb_1st_asks_quantity * 0.7, upbit_balance_coin))    # 업빗 매도 1호가 잔량*0.7, 빗썸 매수 1호가 잔량 * 0.7, 업빗 코인 잔고 중 최솟값
+        amount = round(min(upbit_1st_bids_size * 0.7, bithumb_1st_asks_quantity * 0.7, upbit_balance_coin), round_num)    # 업빗 매도 1호가 잔량*0.7, 빗썸 매수 1호가 잔량 * 0.7, 업빗 코인 잔고 중 최솟값
         if amount >= min_amount:
             print('빗썸 - ', bithumb_1st_asks_price, '원, ', amount, '개 매수')
             print('업빗 - ', upbit_1st_bids_price, '원, ',  amount, '개 매도')
@@ -87,14 +98,36 @@ def trade(bit_ticker, up_ticker, price_diff, min_amount):
                 bithumb.buy_market_order(bit_ticker, amount)       # 빗썸 시장가 매수
                 upbit.sell_market_order(up_ticker, amount)    # 업빗 시장가 매도
 
+                # 수익 계산
                 profit = (round(upbit_1st_bids_price * 0.9995 * amount) - round(bithumb_1st_asks_price * 1.0004 * amount))  # 업빗 매도 정산금액(수수료 0.05%) - 빗썸 매수 정산금액(수수료 0.04%)
                 print('매매수익: ', profit, '원')    # 매매수익 출력
 
+                # 매매기록 csv data 추가
                 now = datetime.now()
                 f = open('profit.csv', 'a', newline='', encoding='UTF-8')
                 wr = csv.writer(f)
-                wr.writerow([now.strftime('%Y-%m-%d %H:%M:%S'), bithumb_1st_asks_price, upbit_1st_bids_price, amount, profit, '업빗매도-빗썸매수'])
+                wr.writerow([now.strftime('%Y-%m-%d %H:%M:%S'), bit_ticker, bithumb_1st_asks_price, upbit_1st_bids_price, amount, profit, '업빗매도-빗썸매수'])
                 f.close()
+
+                # telegram 전송
+                upbit_balance_krw = str(upbit_balance_krw)
+                bithumb_balance_krw = str(bithumb_balance_krw)
+                upbit_balance_coin = str(upbit_balance_coin)
+                bithumb_balance_coin = str(bithumb_balance_coin)
+                upbit_1st_bids_price = str(upbit_1st_bids_price)
+                bithumb_1st_asks_price = str(bithumb_1st_asks_price)
+                amount = str(amount)
+                profit = str(profit)
+                text_ticker = "매매코인: " + bit_ticker + "\n"
+                text_up_bal = "업비트 잔고: " + upbit_balance_krw + "원, " + upbit_balance_coin + "개" + "\n"
+                text_bit_bal = "빗썸 잔고: " + bithumb_balance_krw + "원, " + bithumb_balance_coin + "개" + "\n"
+                text_up_sell = "업비트 매도가: " + upbit_1st_bids_price + "\n"
+                text_bit_buy = "빗썸 매수가: " + bithumb_1st_asks_price + "\n"
+                text_amount = "매매수량: " + amount + "\n"
+                text_profit = "매매수익: " + profit + "원"
+
+                text = text_ticker + text_up_bal + text_bit_bal + text_up_sell + text_bit_buy + text_amount + text_profit
+                asyncio.run(telegram_send(text))
 
                 breakpoint
             except Exception as e:
@@ -118,17 +151,39 @@ def trade(bit_ticker, up_ticker, price_diff, min_amount):
                 f = open('profit.csv', 'a', newline='', encoding='UTF-8')
                 wr = csv.writer(f)
                 wr.writerow(
-                    [now.strftime('%Y-%m-%d %H:%M:%S'), upbit_1st_asks_price, bithumb_1st_bids_price, amount, profit,
+                    [now.strftime('%Y-%m-%d %H:%M:%S'), bit_ticker, upbit_1st_asks_price, bithumb_1st_bids_price, amount, profit,
                      '빗썸매도-업빗매수'])
                 f.close()
+
+                # telegram 전송
+                upbit_balance_krw = str(upbit_balance_krw)
+                bithumb_balance_krw = str(bithumb_balance_krw)
+                upbit_balance_coin = str(upbit_balance_coin)
+                bithumb_balance_coin = str(bithumb_balance_coin)
+                bithumb_1st_bids_price = str(bithumb_1st_bids_price)
+                upbit_1st_asks_price = str(upbit_1st_asks_price)
+                amount = str(amount)
+                profit = str(profit)
+                text_ticker = "매매코인: " + bit_ticker + "\n"
+                text_up_bal = "업비트 잔고: " + upbit_balance_krw + "원, " + upbit_balance_coin + "개" + "\n"
+                text_bit_bal = "빗썸 잔고: " + bithumb_balance_krw + "원, " + bithumb_balance_coin + "개" + "\n"
+                text_bit_sell = "빗썸 매도가: " + bithumb_1st_bids_price + "원" + "\n"
+                text_up_buy = "업비트 매수가: " + upbit_1st_asks_price + "원" + "\n"
+                text_amount = "매매수량: " + amount + "개" + "\n"
+                text_profit = "매매수익: " + profit + "원"
+
+                text = text_ticker + text_up_bal + text_bit_bal + text_bit_sell + text_up_buy + text_amount + text_profit
+                asyncio.run(telegram_send(text))
 
                 breakpoint
             except Exception as e:
                 print('거래 실패: ', e)
 
+
+asyncio.run(telegram_send("재정거래 시작"))
 while True:
     try:
-        trade(bit_ticker, up_ticker, price_diff, min_amount)
+        trade(bit_ticker, up_ticker, price_diff, min_amount, round_num)
         time.sleep(1)  # 반복간격
     except Exception as e:
         print('Error: ', e)
