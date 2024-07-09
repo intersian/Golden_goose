@@ -20,7 +20,6 @@ async def telegram_send(text):  # 텔레그램 메시지 전송 함수
     bot = telegram.Bot(token = token)
     await bot.send_message(chat_id,text)
 
-
 with open("keys.txt") as f:     # txt파일 내 업비트, 빗썸 보안키
     lines = f.readlines()
     bit_key = lines[0].strip()
