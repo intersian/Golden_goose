@@ -6,12 +6,11 @@ import csv
 import telegram
 import asyncio
 
-
-bit_ticker = 'BCH'      # 거래 코인 빗썸 티커
-up_ticker = 'KRW-BCH'   # 거래 코인 업빗 티커
-price_diff = 650    # 매매 가격차(수수료 0.09% 이상)
-min_amount = 0.02   # 해당 코인 최소 거래 수량(5000원 이상)
-round_num = 2   # 최소 매매수량 소수점 자릿수
+bit_ticker = 'TAIKO'      # 거래 코인 빗썸 티커
+up_ticker = 'KRW-TAIKO'    # 거래 코인 업빗 티커
+price_diff = 5000    # 매매 가격차(수수료 0.09% 이상)
+min_amount = 2   # 해당 코인 최소 거래 수량(5000원 이상)
+round_num = 0   # 최소 매매수량 소수점 자릿수
 
 
 async def telegram_send(text):  # 텔레그램 메시지 전송 함수
@@ -54,18 +53,18 @@ def get_upbit_orderbook(up_ticker, round_num):    # 업빗 매수매도 1호가 
 
     return upbit_1st_bids_price, upbit_1st_bids_size, upbit_1st_asks_price, upbit_1st_asks_size
 
-def get_balances(bit_ticker, up_ticker, round_num):
+def get_balances(bit_ticker, up_ticker):
     bithumb_balance = bithumb.get_balance(bit_ticker)
-    bithumb_balance_coin = round(bithumb_balance[0], round_num)                  # 빗썸 테더 잔고
+    bithumb_balance_coin = bithumb_balance[0]                # 빗썸 테더 잔고
     bithumb_balance_krw = int(bithumb_balance[2])                   # 빗썸 원화 잔고
-    upbit_balance_coin = round(upbit.get_balance(up_ticker), round_num)         # 업빗 테더 잔고
+    upbit_balance_coin = upbit.get_balance(up_ticker)        # 업빗 테더 잔고
     upbit_balance_krw = int(upbit.get_balance('KRW'))               # 업빗 원화 잔고
     return bithumb_balance_coin, bithumb_balance_krw, upbit_balance_coin, upbit_balance_krw
 
 def trade(bit_ticker, up_ticker, price_diff, min_amount, round_num):
     bithumb_1st_bids_price, bithumb_1st_bids_quantity, bithumb_1st_asks_price, bithumb_1st_asks_quantity = get_bithumb_orderbook(bit_ticker, round_num)
     upbit_1st_bids_price, upbit_1st_bids_size, upbit_1st_asks_price, upbit_1st_asks_size = get_upbit_orderbook(up_ticker, round_num)
-    bithumb_balance_coin, bithumb_balance_krw, upbit_balance_coin, upbit_balance_krw = get_balances(bit_ticker, up_ticker, round_num)
+    bithumb_balance_coin, bithumb_balance_krw, upbit_balance_coin, upbit_balance_krw = get_balances(bit_ticker, up_ticker)
 
     print('****** AUTO PROGRAM START ******')
     print('빗썸 즉시매수 가격, 수량 :', format(bithumb_1st_asks_price, ','), '원,', format(bithumb_1st_asks_quantity, ','), '개')
